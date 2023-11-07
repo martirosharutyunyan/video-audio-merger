@@ -1,6 +1,7 @@
 package service
 
 import (
+	"os"
 	"os/exec"
 )
 
@@ -23,8 +24,25 @@ func (MergeVideoAudioFileService) Merge(sourceVideo, sourceAudio, output string)
 		//"-map", "1:a:0",
 		output,
 	)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	return cmd.Run()
+	err := cmd.Start()
+	if err != nil {
+		return err
+	}
+
+	//reader, err := cmd.StdoutPipe()
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//scanner := bufio.NewScanner(reader)
+	//for scanner.Scan() {
+	//	log.Println(scanner.Text())
+	//}
+
+	return cmd.Wait()
 }
 
 func NewMergeAudioFileService() *MergeVideoAudioFileService {

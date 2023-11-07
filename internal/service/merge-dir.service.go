@@ -1,6 +1,7 @@
 package service
 
 import (
+	"golang.org/x/sync/errgroup"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -19,13 +20,14 @@ type MergeVideoAudioDirService struct {
 var _ IMergeVideoAudioDirService = MergeVideoAudioDirService{}
 
 func (s MergeVideoAudioDirService) Merge(source, output string) error {
-
+	group := errgroup.Group{}
+	group.SetLimit(3)
 	err := filepath.WalkDir(source, func(path string, _ fs.DirEntry, err error) error {
 		if source == path {
 			return nil
 		}
-		
-		if strings.Contains(source, "audio") {
+
+		if strings.Contains(path, "_audio.mp4") {
 			return nil
 		}
 
@@ -45,22 +47,28 @@ func (s MergeVideoAudioDirService) Merge(source, output string) error {
 		outputBuilder.WriteString(fileRelativePath)
 
 		audioPath := strings.Replace(path, ".mp4", "_audio.mp4", -1)
-		
+
 		if info.IsDir() {
 			err = os.Mkdir(outputBuilder.String(), 0777)
 			if err != nil {
 				return err
 			}
 		} else {
-			return s.mergeVideoAudioFileService.Merge(path, audioPath, outputBuilder.String())
+			group.Go(func() error {
+				return s.mergeVideoAudioFileService.Merge(path, audioPath, outputBuilder.String())
+			})
 		}
 
 		return err
 	})
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	return group.Wait()
 }
 
-func NewMergeVideoAudioDirService() *MergeVideoAudioDirService {
-	return &MergeVideoAudioDirService{}
+func NewMergeVideoAudioDirService(mergeVideoAudioFileService *MergeVideoAudioFileService) *MergeVideoAudioDirService {
+	return &MergeVideoAudioDirService{mergeVideoAudioFileService: mergeVideoAudioFileService}
 }

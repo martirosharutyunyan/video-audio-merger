@@ -4,6 +4,8 @@ import (
 	"github.com/martirosharutyunyan/video-audio-merger/internal/service"
 	"github.com/martirosharutyunyan/video-audio-merger/internal/utils"
 	"github.com/spf13/cobra"
+	"os"
+	"path/filepath"
 )
 
 var rootCmd = &cobra.Command{
@@ -15,7 +17,29 @@ var mergeDirCmd = &cobra.Command{
 	Use:   "dir",
 	Short: "Merge directory of videos and audios",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return nil
+		input := cmd.Flag("input").Value.String()
+		output := cmd.Flag("output").Value.String()
+
+		var err error
+		if output == "" {
+			output, err = utils.GenCopyPath(input)
+			if err != nil {
+				return err
+			}
+		}
+		err = os.Mkdir(output, 0777)
+		if err != nil {
+			return err
+		}
+
+		input, err = filepath.Abs(input)
+		if err != nil {
+			return err
+		}
+
+		mergeDirService := service.NewMergeVideoAudioDirService(service.NewMergeAudioFileService())
+
+		return mergeDirService.Merge(input, output)
 	},
 }
 
