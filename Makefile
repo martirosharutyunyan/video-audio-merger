@@ -8,3 +8,9 @@ build:
 
 install:
 	go install ./cmd/video-audio-merger
+
+tidy:
+	go mod tidy
+
+update:
+	go get -u ./...

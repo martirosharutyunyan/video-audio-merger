@@ -10,7 +10,7 @@ import (
 )
 
 type IMergeVideoAudioDirService interface {
-	Merge(source, output string) error
+	Merge(source, output string, parallelCoreCount int) error
 }
 
 type MergeVideoAudioDirService struct {
@@ -19,9 +19,9 @@ type MergeVideoAudioDirService struct {
 
 var _ IMergeVideoAudioDirService = MergeVideoAudioDirService{}
 
-func (s MergeVideoAudioDirService) Merge(source, output string) error {
+func (s MergeVideoAudioDirService) Merge(source, output string, parallelCoreCount int) error {
 	group := errgroup.Group{}
-	group.SetLimit(3)
+	group.SetLimit(parallelCoreCount)
 	err := filepath.WalkDir(source, func(path string, _ fs.DirEntry, err error) error {
 		if source == path {
 			return nil

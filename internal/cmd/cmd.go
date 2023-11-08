@@ -15,6 +15,7 @@ func Execute(args []string, stdin, stdout, stderr *os.File) {
 
 	mergeDirCmd.PersistentFlags().String("input", "", "video-audio-merger dir --input {source_path} --output {output_path}")
 	mergeDirCmd.PersistentFlags().String("output", "", "video-audio-merger dir --input {source_path} --output {output_path}")
+	mergeDirCmd.PersistentFlags().Int("p", 2, "parallel cpu core count")
 
 	rootCmd.SetArgs(args)
 	rootCmd.SetIn(stdin)

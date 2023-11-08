@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 var rootCmd = &cobra.Command{
@@ -19,8 +20,12 @@ var mergeDirCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		input := cmd.Flag("input").Value.String()
 		output := cmd.Flag("output").Value.String()
+		parallelCoreCountString := cmd.Flag("p").Value.String()
+		parallelCoreCount, err := strconv.Atoi(parallelCoreCountString)
+		if err != nil {
+			return err
+		}
 
-		var err error
 		if output == "" {
 			output, err = utils.GenCopyPath(input)
 			if err != nil {
@@ -39,7 +44,7 @@ var mergeDirCmd = &cobra.Command{
 
 		mergeDirService := service.NewMergeVideoAudioDirService(service.NewMergeAudioFileService())
 
-		return mergeDirService.Merge(input, output)
+		return mergeDirService.Merge(input, output, parallelCoreCount)
 	},
 }
 
